@@ -13,7 +13,8 @@ import bus_71 from './bus_constants/71.json';
 import bus_73 from './bus_constants/73.json';
 import bus_77 from './bus_constants/77.json';
 import bus_111 from './bus_constants/111.json';
-import bus_114_116_117 from './bus_constants/114-116-117.json'
+import bus_114_116_117 from './bus_constants/114-116-117.json';
+import bus_47 from './bus_constants/47.json'
 
 const stations = {...rt_stations,
                   ...bus_1,
@@ -29,7 +30,8 @@ const stations = {...rt_stations,
                   ...bus_73,
                   ...bus_77,
                   ...bus_111,
-                  ...bus_114_116_117
+                  ...bus_114_116_117,
+                  ...bus_47,
                 };
 
 const all_lines = () => {
