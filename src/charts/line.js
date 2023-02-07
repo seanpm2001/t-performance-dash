@@ -245,6 +245,22 @@ class AggregateLine extends React.Component {
         labels,
         datasets: [
           {
+            label: "10th percentile",
+            fill: false,
+            backgroundColor: 'rgba(255,255,255,0)',
+            lineTension: 0.4,
+            pointRadius: 0,
+            data: this.props.data.map(item => (item["10%"] / 60).toFixed(2))
+          },
+          {
+            label: "25th percentile",
+            fill: 1,
+            backgroundColor: this.props.fillColor,
+            lineTension: 0.4,
+            pointRadius: 0,
+            data: this.props.data.map(item => (item["25%"] / 60).toFixed(2))
+          },
+          {
             label: this.props.seriesName,
             fill: false,
             lineTension: 0.1,
@@ -256,20 +272,20 @@ class AggregateLine extends React.Component {
             data: this.props.data.map(item => (item["50%"] / 60).toFixed(2))
           },
           {
-            label: "25th percentile",
-            fill: 1,
-            backgroundColor: this.props.fillColor,
-            lineTension: 0.4,
-            pointRadius: 0,
-            data: this.props.data.map(item => (item["25%"] / 60).toFixed(2))
-          },
-          {
             label: "75th percentile",
             fill: 1,
             backgroundColor: this.props.fillColor,
             lineTension: 0.4,
             pointRadius: 0,
             data: this.props.data.map(item => (item["75%"] / 60).toFixed(2))
+          },
+          {
+            label: "90th percentile",
+            fill: false,
+            backgroundColor: 'white',
+            lineTension: 0.4,
+            pointRadius: 0,
+            data: this.props.data.map(item => (item["90%"] / 60).toFixed(2))
           },
         ]
       }}
