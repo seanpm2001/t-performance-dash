@@ -14,10 +14,10 @@ boto3 = "1.20.46"
 numpy = "1.22.1"
 pandas = "1.4.0"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 chalice = "1.26.6"
 flake8 = "4.0.1"
-
+psycopg2 = "^2.9.5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

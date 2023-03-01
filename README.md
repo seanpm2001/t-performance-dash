@@ -11,15 +11,22 @@ This is the repository for the TransitMatters Data Dashboard. Client code is wri
 
 - node 16.x preferred, but should work with anything >=14.x and <17. (verify with `node -v`)
 - Python 3.9 with recent poetry (verify with python --version; poetry --version; `poetry self update` to update poetry)
+- Our backend now requires `psycopg2`. For poetry to install this, you need gcc and postgres headers. 
+  - Depending on your environment:
+     - Mac: `brew install postgresql`
+     - Ubuntu: `sudo apt-get install libpq-dev`
+     - RHEL: `yum install postgresql-devel`
+
 
 ## Development Instructions
 
 1. Add `MBTA_V2_API_KEY` to your shell environment:
    - `export MBTA_V2_API_KEY='KEY'` in ~/.bashrc or ~/.zshrc
 2. Add your AWS credentials (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY) to your shell environment, OR add them to a .boto config file with awscli command `aws configure`.
-3. In the root directory, run `npm install` to install all frontend and backend dependencies
-4. Run `npm start` to start both the JavaScript development server and the Python backend at the same time.
-5. Navigate to [http://localhost:3000](http://localhost:3000) (or the url provided after running `npm start`)
+3. Add your PostgresQL db username to shell environment variable `RDS_DBUSER`.
+4. In the root directory, run `npm install` to install all frontend and backend dependencies
+5. Run `npm start` to start both the JavaScript development server and the Python backend at the same time.
+6. Navigate to [http://localhost:3000](http://localhost:3000) (or the url provided after running `npm start`)
 
 ## Deployment Instructions
 

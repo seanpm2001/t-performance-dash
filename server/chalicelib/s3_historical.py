@@ -1,10 +1,10 @@
 from datetime import datetime
-from chalicelib import s3
+from chalicelib import rds as s3
 from chalicelib.constants import EVENT_ARRIVAL, EVENT_DEPARTURE
 
 import itertools
 
-DATE_FORMAT_MASSDOT = "%Y-%m-%d %H:%M:%S"
+# DATE_FORMAT_MASSDOT = "%Y-%m-%d %H:%M:%S"
 DATE_FORMAT_OUT = "%Y-%m-%dT%H:%M:%S"
 
 
@@ -45,10 +45,8 @@ def dwells(stop_ids, sdate, edate):
            maybe_a_departure["event_type"] in EVENT_DEPARTURE and \
            maybe_an_arrival["trip_id"] == maybe_a_departure["trip_id"]:
 
-            dep_dt = datetime.strptime(
-                maybe_a_departure["event_time"], DATE_FORMAT_MASSDOT)
-            arr_dt = datetime.strptime(
-                maybe_an_arrival["event_time"], DATE_FORMAT_MASSDOT)
+            dep_dt = maybe_a_departure["event_time"]
+            arr_dt = maybe_an_arrival["event_time"]
             delta = dep_dt - arr_dt
             dwells.append({
                 "route_id": maybe_a_departure["route_id"],
@@ -73,8 +71,8 @@ def headways(stop_ids, sdate, edate):
             # Here, we should skip the headway
             # (though if trip_id is empty, we don't know).
             continue
-        this_dt = datetime.strptime(this["event_time"], DATE_FORMAT_MASSDOT)
-        prev_dt = datetime.strptime(prev["event_time"], DATE_FORMAT_MASSDOT)
+        this_dt = this["event_time"]
+        prev_dt = prev["event_time"]
         delta = this_dt - prev_dt
         headway_time_sec = delta.total_seconds()
 
@@ -89,7 +87,7 @@ def headways(stop_ids, sdate, edate):
         headways.append({
             "route_id": this["route_id"],
             "direction": this["direction_id"],
-            "current_dep_dt": this["event_time"],
+            "current_dep_dt": this["event_time"].strftime(DATE_FORMAT_OUT),
             "headway_time_sec": headway_time_sec,
             "benchmark_headway_time_sec": benchmark_headway
         })
@@ -113,11 +111,9 @@ def travel_times(stops_a, stops_b, sdate, edate):
         arrival = arrivals.get((departure["service_date"], departure["trip_id"]))
         if arrival is None:
             continue
-        dep = departure["event_time"]
-        arr = arrival["event_time"]
+        dep_dt = departure["event_time"]
+        arr_dt = arrival["event_time"]
 
-        dep_dt = datetime.strptime(dep, DATE_FORMAT_MASSDOT)
-        arr_dt = datetime.strptime(arr, DATE_FORMAT_MASSDOT)
         delta = arr_dt - dep_dt
         travel_time_sec = delta.total_seconds()
 
