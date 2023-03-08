@@ -27,6 +27,17 @@
       "Resource": [
         "arn:aws:s3:::tm-mbta-performance/*"
       ]
+    },
+    {
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:BatchGetItem",
+        "dynamodb:Query"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ]
     }
   ]
 }
