@@ -16,7 +16,7 @@ export const Alerts: React.FC = () => {
   const alerts = useAlertsData(lineShort, busRoute);
 
   const divStyle = classNames(
-    'flex flex-col rounded-md p-4 text-white shadow-dataBox w-full xl:w-1/3 gap-y-2 md:max-h-[309px] md:overflow-y-auto',
+    'flex flex-col rounded-md p-4 text-white shadow-dataBox md:col-span-2 gap-y-2 md:max-h-[309px] md:overflow-y-auto',
     lineColorBackground[line ?? 'DEFAULT']
   );
 
