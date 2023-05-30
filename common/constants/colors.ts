@@ -46,6 +46,15 @@ export const LINE_COLORS = {
   'line-orange': '#ed8b00',
   'line-blue': '#003da5',
   'line-green': '#00834d',
-  'line-bus': '#ffc72c',
+  'line-bus': '#f5B400',
+  default: '#303030',
+};
+
+export const LINE_COLORS_LIGHT = {
+  'line-red': '#E89999',
+  'line-orange': '#F6C580',
+  'line-blue': '#809ED2',
+  'line-green': '#80C1A6',
+  'line-bus': '#FFE395',
   default: '#303030',
 };
