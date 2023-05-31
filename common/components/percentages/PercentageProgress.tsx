@@ -23,7 +23,7 @@ export const PercentageProgress: React.FC<PercentageProgressProps> = ({
     <div className="col-span-2 flex w-full justify-center">
       <Link
         href={`/${LINE_OBJECTS[line].path}/${pageName}`}
-        className="w-24 cursor-pointer rounded-full p-1 md:w-40 lg:p-4"
+        className="w-24 cursor-pointer items-center rounded-full p-1 md:w-40 lg:p-4"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
@@ -47,6 +47,7 @@ export const PercentageProgress: React.FC<PercentageProgressProps> = ({
             backgroundColor: hovered ? LINE_COLORS_LIGHT[line ?? 'DEFAULT'] : 'transparent',
           })}
         />
+        <p className="truncate text-center text-white">from last month</p>
       </Link>
     </div>
   );
