@@ -10,6 +10,7 @@ import { TravelTimesAggregateWrapper } from '../traveltimes/TravelTimesAggregate
 import { TravelTimesSingleWrapper } from '../traveltimes/TravelTimesSingleWrapper';
 import { HeadwaysSingleWrapper } from '../headways/HeadwaysSingleWrapper';
 import { HeadwaysAggregateWrapper } from '../headways/HeadwaysAggregateWrapper';
+import { HeadwaysHistogramWrapper } from '../headways/charts/HeadwaysHistogramWrapper';
 
 interface BusTripGraphsProps {
   fromStation: Station;
@@ -38,7 +39,7 @@ export const BusTripGraphs: React.FC<BusTripGraphsProps> = ({
   const location = getLocationDetails(fromStation, toStation);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid grid-cols-1 gap-8 xl:grid-cols-2">
       {aggregate ? (
         <>
           <WidgetDiv>
@@ -81,6 +82,19 @@ export const BusTripGraphs: React.FC<BusTripGraphsProps> = ({
               line={line}
             />
             <HeadwaysSingleWrapper
+              query={headways}
+              toStation={toStation}
+              fromStation={fromStation}
+            />
+          </WidgetDiv>
+          <WidgetDiv>
+            <WidgetTitle
+              title="Headways Histogram"
+              subtitle="Time between Buses"
+              location={location}
+              line={line}
+            />
+            <HeadwaysHistogramWrapper
               query={headways}
               toStation={toStation}
               fromStation={fromStation}
