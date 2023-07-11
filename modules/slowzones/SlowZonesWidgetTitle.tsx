@@ -39,16 +39,6 @@ export const SlowZonesWidgetTitle: React.FC<SlowZonesWidgetTitle> = ({ line }) =
 
 const Date = ({ date, line }: { date?: string; line?: Line }) => {
   return line ? (
-    <p
-      className="text-xs text-stone-700"
-      style={{
-        color: 'white',
-        background: LINE_OBJECTS[line].color,
-        padding: '5px 15px',
-        borderRadius: '5px',
-      }}
-    >
-      {date}
-    </p>
+    <p className="rounded-md bg-stone-500 px-3 py-1 text-xs italic text-stone-100">{date}</p>
   ) : null;
 };
