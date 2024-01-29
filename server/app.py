@@ -30,7 +30,7 @@ if TM_FRONTEND_HOST != localhost:
     app.register_middleware(ConvertToMiddleware(datadog_lambda_wrapper))
 
 
-def parse_user_date(user_date):
+def parse_user_date(user_date: str):
     date_split = user_date.split("-")
     [year, month, day] = [int(x) for x in date_split[0:3]]
     return date(year=year, month=month, day=day)
@@ -154,6 +154,15 @@ def dwells_aggregate_route():
     stops = app.current_request.query_params.getlist("stop")
 
     response = aggregation.dwells_over_time(sdate, edate, stops)
+    return json.dumps(response, indent=4, sort_keys=True, default=str)
+
+
+@app.route("/api/aggregate/alerts", cors=cors_config)
+def alerts_route():
+    sdate = parse_user_date(app.current_request.query_params["start_date"])
+    edate = parse_user_date(app.current_request.query_params["end_date"])
+
+    response = aggregation.alerts_over_time(sdate, edate, app.current_request.query_params["route"])
     return json.dumps(response, indent=4, sort_keys=True, default=str)
 
 

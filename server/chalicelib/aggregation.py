@@ -1,4 +1,5 @@
 import datetime
+import json
 from chalicelib import data_funcs
 import pandas as pd
 from pandas.tseries.holiday import USFederalHolidayCalendar
@@ -155,7 +156,7 @@ def headways_over_time(sdate, edate, stops):
     return results.to_dict("records")
 
 
-def dwells_over_time(sdate, edate, stops):
+def dwells_over_time(sdate: datetime.date, edate: datetime.date, stops):
     all_data = data_funcs.dwells(sdate, stops, edate)
     if not all_data:
         return []
@@ -185,3 +186,68 @@ def dwells_over_time(sdate, edate, stops):
     results = summary_stats_final.loc[summary_stats_final["peak"] == "all"]
     # convert to dictionary
     return results.to_dict("records")
+
+
+def alerts_over_time(sdate: datetime.date, edate: datetime.date, route: str):
+    dates = data_funcs.date_range(sdate, edate)
+
+    disabled_trains = []
+    police_activity = []
+    medical_emergency = []
+    fire = []
+    flooding = []
+    signal_problem = []
+    door_problem = []
+    shutdown = []
+
+    other = []
+
+    alert_count = 0
+
+    for date in dates:
+        alerts = data_funcs.alerts(date, {"route": route})
+
+        return alerts
+
+        if alerts is not None:
+            for alert in alerts:
+                return alert
+                alert_count += 1
+                if "disabled train" in alert["text"]:
+                    disabled_trains.append(alert)
+                elif (
+                    "police activity" in alert["text"]
+                    or "police investigation" in alert["text"]
+                    or "police action" in alert["text"]
+                    or "police concluded an investigation" in alert["text"]
+                ):
+                    police_activity.append(alert)
+                elif "medical emergency" in alert["text"]:
+                    medical_emergency.append(alert)
+                elif "fire" in alert["text"] or "smoke" in alert["text"]:
+                    fire.append(alert)
+                elif "flooding" in alert["text"]:
+                    flooding.append(alert)
+                elif "signal problem" in alert["text"]:
+                    signal_problem.append(alert)
+                elif "door problem" in alert["text"]:
+                    door_problem.append(alert)
+                elif (
+                    "No trains between".lower() in alert["text"].lower()
+                    or "Shuttle buses replace".lower() in alert["text"].lower()
+                ):
+                    shutdown.append(alert)
+                else:
+                    other.append(alert)
+
+    return {
+        "disabled_trains": disabled_trains,
+        "police_activity": police_activity,
+        "medical_emergency": medical_emergency,
+        "fire": fire,
+        "flooding": flooding,
+        "signal_problem": signal_problem,
+        "door_problem": door_problem,
+        "shutdown": shutdown,
+        "other": other,
+    }
