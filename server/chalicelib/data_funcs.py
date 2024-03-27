@@ -2,11 +2,15 @@ import datetime
 import pytz
 import traceback
 from datetime import date, timedelta
-from typing import Dict, Any, Callable, List, Union
+from typing import Dict, Any, Callable, List, Optional, Tuple, Union
 from chalicelib import MbtaPerformanceAPI, s3_historical, s3_alerts, s3
+
+from dask import dataframe as dd
 
 DATE_FORMAT = "%Y-%m-%dT%H:%M:%S"
 WE_HAVE_ALERTS_SINCE = datetime.date(2017, 11, 6)
+# what is this actually?
+WE_HAVE_PARQUET_SINCE = datetime.date(2024, 5, 1)
 
 
 def bucket_by(
@@ -57,29 +61,33 @@ def use_S3(date, bus=False):
     return archival or bus
 
 
-def partition_S3_dates(start_date: str | date, end_date: str | date, bus=False):
+def partition_S3_dates(
+    start_date: str | date, end_date: str | date, bus=False
+) -> Tuple[Optional[Tuple], Optional[Tuple]]:
     """
     Partitions dates by what data source they should be fetched from.
     S3 is used for archival data and for bus data. API is used for recent (within 90 days) subway data.
     TODO: Add Gobble data to this partitioning.
     """
-    CUTOFF = datetime.date.today() - datetime.timedelta(days=90)
+    HISTORICAL_CUTOFF = datetime.date.today() - datetime.timedelta(days=90)
 
     s3_dates = None
     api_dates = None
 
-    if end_date < CUTOFF or bus:
+    if end_date < HISTORICAL_CUTOFF or bus:
         s3_dates = (start_date, end_date)
-    elif CUTOFF <= start_date:
+    elif HISTORICAL_CUTOFF <= start_date:
         api_dates = (start_date, end_date)
     else:
-        s3_dates = (start_date, CUTOFF - datetime.timedelta(days=1))
-        api_dates = (CUTOFF, end_date)
+        s3_dates = (start_date, HISTORICAL_CUTOFF - datetime.timedelta(days=1))
+        api_dates = (HISTORICAL_CUTOFF, end_date)
 
+    # TODO: api_dates calls should use pq protocol
+    # need a new partition for legacy events.csv versus parquet ingestion
     return (s3_dates, api_dates)
 
 
-def headways(start_date: str | date, stops, end_date: str | date | None = None):
+def headways(start_date: str | date, stops, end_date: str | date | None = None) -> List:
     if end_date is None:
         if use_S3(start_date, is_bus(stops)):
             return s3_historical.headways(stops, start_date, start_date)
@@ -109,7 +117,7 @@ def current_transit_day():
     return today
 
 
-def process_mbta_headways(stops, start_date: str | date, end_date: str | date | None = None):
+def process_mbta_headways(stops, start_date: str | date, end_date: str | date | None = None) -> List:
     # get data
     api_data = MbtaPerformanceAPI.get_api_data("headways", {"stop": stops}, start_date, end_date)
     # combine all headways data
@@ -128,6 +136,31 @@ def process_mbta_headways(stops, start_date: str | date, end_date: str | date | 
         headway_dict["direction"] = int(headway_dict.get("direction"))
 
     return sorted(headways, key=lambda x: x["current_dep_dt"])
+
+
+def process_mbta_parquet_headways(stops, start_date: str | date, end_date: str | date | None = None):
+    # Fetch multiple files from archive
+    url_list = ["~/.temp/data/"]
+
+    df = dd.read_parquet(
+        url_list,
+        aggregate_files=True,  # If multifile, will enter the same DF
+        engine="pyarrow",
+        # enforce types!
+        columns=[
+            # convert to datetime
+            "move_timestamp",  # "dep_dt": stamp_to_dt(event["dep_dt"]),
+            "stop_timestamp",  # "arr_dt": stamp_to_dt(event["arr_dt"]),
+            # convert to int
+            "scheduled_headway_branch",
+            "headway_branch_seconds",
+            "direction_id",
+        ],
+        filters=[("stop_id", "==", "70278")]
+    )
+    # sort and convert to dicts
+    data=list(df.map_partitions(lambda x:x.to_dict(orient="records")))
+    return
 
 
 def travel_times(start_date, from_stops, to_stops, end_date: str | date | None = None):
@@ -174,6 +207,31 @@ def process_mbta_travel_times(from_stops, to_stops, start_date: str | date, end_
     return sorted(trips_list, key=lambda x: x["dep_dt"])
 
 
+def process_mbta_parquet_travel_times(
+    from_stops, to_stops, start_date: str | date, end_date: str | date | None = None
+) -> list:
+    # load data from dask
+    url_list = ["~/.temp/data/"]
+
+    df2 = dd.read_parquet(
+        url_list,
+        aggregate_files=True,
+        engine="pyarrow",
+        columns=[
+            "route_id",
+            "direction_id",
+            # convert to datetime
+            "move_timestamp",  # "dep_dt": stamp_to_dt(event["dep_dt"]),
+            "stop_timestamp",  # "arr_dt": stamp_to_dt(event["arr_dt"]),
+            # convert to int
+            "travel_time_seconds",  # "travel_time_sec": int(event["travel_time_sec"]),
+            "scheduled_travel_time",  # "benchmark_travel_time_sec": int(event["benchmark_travel_time_sec"]),
+        ],
+        filters=[("stop_id", "==", "70278")]
+    )
+    return
+
+
 def dwells(start_date, stops, end_date: str | date | None = None):
     if end_date is None:
         if use_S3(start_date, is_bus(stops)):
@@ -213,6 +271,28 @@ def process_mbta_dwells(stops, start_date: str | date, end_date: str | date | No
         dwell_dict["direction"] = int(dwell_dict.get("direction"))
 
     return sorted(dwells, key=lambda x: x["arr_dt"])
+
+
+def process_mbta_parquent_dwells():
+    # filter by day and multiple stops
+    url_list = ["~/.temp/data/"]
+    
+    dd.read_parquet(
+        url_list,
+        aggregate_files=True,
+        engine="pyarrow",
+        # convert to datetime
+        columns=[
+            "move_timestamp",  # "dep_dt": stamp_to_dt(event["dep_dt"]),
+            "stop_timestamp",  # "arr_dt": stamp_to_dt(event["arr_dt"]),
+            # convert to int
+            "dwell_time_seconds",
+            "direction_id",
+        ],
+        index="stop_id",
+        filters=[("stop_id", "==", "70278")]
+    )
+    return
 
 
 def alerts(day, params):

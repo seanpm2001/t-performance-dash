@@ -5,6 +5,7 @@ import requests
 from urllib.parse import urlencode
 from decimal import Decimal
 import itertools
+from typing import Dict, List, Tuple
 
 from chalicelib.parallel import make_parallel
 
@@ -39,7 +40,7 @@ def get_timestamp_range(start_day, end_day=None):
         return get_timestamps(start_day)
 
 
-def get_single_url(start_day, end_day, module, params):
+def get_single_url(start_day, end_day, module: str, params: dict) -> str:
     # import api key & set base url
     base_url_v2 = "https://realtime.mbta.com/developer/api/v2.1/{command}?{parameters}"
 
@@ -64,7 +65,7 @@ def get_product_of_list_dict_values(dict_of_lists):
         yield dict(zip(keys, combination))
 
 
-def get_many_urls(start_day, end_day, module, params):
+def get_many_urls(start_day, end_day, module: str, params: dict) -> List[str]:
     exploded_params = list(get_product_of_list_dict_values(params))  # get all possible parameter combinations
     url_list = []
     # get url for each pair, add to list
@@ -86,7 +87,7 @@ def get_single_api_data(url):
 
 
 # This is the primary function, but shouldn't be called directly, see dispatcher below
-def _get_api_data(date_interval, module, params):
+def _get_api_data(date_interval: Tuple, module: str, params: dict) -> List:
     start_day, end_day = date_interval
     url_list = get_many_urls(start_day, end_day, module, params)
     all_data = []
@@ -100,7 +101,7 @@ _multithreaded_api = make_parallel(_get_api_data)
 
 
 # we offer this convenient wrapper, that also dispatches to multi-threaded if needed
-def get_api_data(module, params, start_day, end_day=None):
+def get_api_data(module: str, params: dict, start_day, end_day=None) -> List:
     if end_day is None:
         return _get_api_data((start_day, None), module, params)
     else:
