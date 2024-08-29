@@ -200,6 +200,16 @@ def get_ridership():
     return json.dumps(response)
 
 
+@app.route("/api/ridership/historical_max", cors=cors_config)
+def get_historical_max():
+    query = app.current_request.query_params
+    line_id = query.get("line_id")
+    response = ridership.get_historical_max(
+        line_id=line_id,
+    )
+    return json.dumps(response)
+
+
 @app.route("/api/facilities", cors=cors_config)
 def get_facilities():
     response = mbta_v3.getV3("facilities", app.current_request.query_params)
